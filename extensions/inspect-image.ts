@@ -157,6 +157,23 @@ const InspectImageParams = Type.Object({
 // ── Extension Factory ───────────────────────────────────────────────
 
 export default function (pi: ExtensionAPI) {
+	// ── Agent hook: route images to inspect_image when main model isn't vision-capable ──
+	pi.on("before_agent_start", async (event, ctx) => {
+		const currentModel = ctx.model;
+		if (currentModel && !currentModel.input.includes("image")) {
+			return {
+				message: {
+					customType: "inspect-image-hint",
+					content:
+						"⚠️ The current chat model does not support image input. " +
+						"Use the `inspect_image` tool to analyze any image files — " +
+						"it routes them to a separate vision-capable model.",
+					display: true,
+				},
+			};
+		}
+	});
+
 	// ── Command: /setup-vision ──────────────────────────────────
 	pi.registerCommand("setup-vision", {
 		description: "Pick a vision model for the inspect_image tool",
@@ -175,9 +192,14 @@ export default function (pi: ExtensionAPI) {
 			name: "inspect_image",
 			label: "Inspect Image",
 			description:
-				"Analyze an image file using a vision-capable model. Returns a text description of the image contents. " +
-				"If no vision model is selected yet, you'll be prompted to pick one from your configured providers — " +
-				"or run /setup-vision beforehand.",
+				"Analyze an image file using a separate vision-capable model. " +
+				"Returns a text description of the image contents.",
+			promptSnippet: "Analyze an image file using a vision-capable model (separate from the chat model)",
+			promptGuidelines: [
+				"Use inspect_image whenever the user asks about an image file — the current chat model may not support vision directly.",
+				"Use inspect_image for any image-related request: describe, analyze, extract text from, or answer questions about image files.",
+				"If inspect_image fails because no vision model is configured, it will guide the user through setup; continue after setup completes.",
+			],
 			parameters: InspectImageParams,
 
 			async execute(_toolCallId, params, signal, _onUpdate, ctx) {

@@ -1,55 +1,64 @@
 # pi-inspect-image
 
-A pi extension that analyzes images using vision-capable AI models.
+A pi extension that analyzes images using a separate vision-capable model — independent of your main chat model.
 
 Supported providers: **OpenAI**, **OpenRouter**, and any OpenAI-compatible API.
 
 ## Setup
 
-1. Add a `visionConfig` block to your pi settings:
+Run `/setup-vision` for a 2-step interactive configuration:
 
-**Project settings** (`.pi/settings.json`) — for team-shared config:
+```
+/setup-vision
+```
+
+1. **Pick a provider** — auto-populated from providers you've authenticated via `/login` that have vision models.
+2. **Enter the model ID** — e.g. `gpt-4o`, `openai/gpt-4o`, or any model available on your provider.
+
+The extension validates your entry against the model registry and warns if the model isn't recognized or lacks vision support (both are advisory — the call will still be attempted). Configuration is saved to `.pi/settings.json`.
+
+You can also configure manually:
+
 ```json
 {
   "visionConfig": {
     "provider": "openai",
-    "model": "gpt-4o",
-    "maxTokens": 4096
+    "model": "gpt-4o"
   }
 }
 ```
 
-**Global settings** (`~/.pi/agent/settings.json`) — personal config:
-```json
-{
-  "visionConfig": {
-    "provider": "openrouter",
-    "model": "anthropic/claude-sonnet-4-20250514",
-    "baseUrl": "https://openrouter.ai/api"
-  }
-}
-```
+- **Project settings** (`.pi/settings.json`) — shared with your team, set via `/setup-vision`.
+- **Global settings** (`~/.pi/agent/settings.json`) — personal, edit manually.
 
-Project settings override global settings.
+### API keys
 
-2. Configure your API key via `/login` or set the appropriate environment variable (e.g., `OPENAI_API_KEY`, `OPENROUTER_API_KEY`).
+Configure via `/login` or set the appropriate environment variable:
 
-## Configuration Options
+| Provider | Env var |
+|----------|---------|
+| OpenAI | `OPENAI_API_KEY` |
+| OpenRouter | `OPENROUTER_API_KEY` |
+| Custom | Any — handled by `/login` or `auth.json` |
+
+## Configuration
 
 | Field | Required | Description |
 |-------|----------|-------------|
-| `provider` | Yes | Vision provider: `"openai"`, `"openrouter"`, or custom (requires `baseUrl`) |
-| `model` | Yes | Model ID (e.g., `"gpt-4o"`, `"anthropic/claude-sonnet-4-20250514"`) |
-| `baseUrl` | No | Custom API base URL for compatible providers |
-| `maxTokens` | No | Maximum tokens in response (default: 4096) |
+| `provider` | Yes | `"openai"`, `"openrouter"`, or any custom provider name |
+| `model` | Yes | Model ID (e.g. `"gpt-4o"`, `"openai/gpt-4o"`) |
+| `baseUrl` | No | Custom API base URL for compatible providers (auto-resolved for OpenAI/OpenRouter) |
+| `maxTokens` | No | Max tokens in response (default: 4096) |
 
 ## Supported Image Formats
 
-- PNG, JPEG, GIF, WebP, BMP
+PNG, JPEG, GIF, WebP, BMP — up to 20 MB.
 
 ## Usage
 
-The extension registers an `inspect_image` tool. Once configured, you can ask pi to describe images and it will use this tool automatically.
+The extension registers an `inspect_image` tool. Once configured, ask pi to describe an image and it will use this tool automatically.
+
+If no vision model is configured when the tool runs, you'll be guided through setup on the spot.
 
 ## License
 
