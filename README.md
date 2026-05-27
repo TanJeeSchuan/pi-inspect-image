@@ -1,6 +1,12 @@
 # pi-inspect-image
 
-A pi extension that analyzes images using a separate vision-capable model — independent of your main chat model.
+A pi extension that analyzes images using a separate vision-capable model — independent of your main chat model. This enables vision capabilities for non-vision models (e.g. Haiku, Sonnet) via tool calls to a selected vision model.
+
+**When to use it:**
+- Your primary chat model doesn't support vision — route image analysis to a dedicated model.
+- You want to keep large image payloads out of your main conversation context — only the derived description enters your chat.
+- You need specialized image tasks: describing screenshots, extracting text via OCR, analyzing UI mockups, reading diagrams or charts, debugging visual layout issues, or inspecting error screenshots.
+- You're working with visual artifacts (designs, photos, graphs) and want pi to understand them before generating code.
 
 Supported providers: **OpenAI**, **OpenRouter**, and any OpenAI-compatible API.
 
@@ -57,6 +63,12 @@ PNG, JPEG, GIF, WebP, BMP — up to 20 MB.
 ## Usage
 
 The extension registers an `inspect_image` tool. Once configured, ask pi to describe an image and it will use this tool automatically.
+
+You can also pass a custom prompt to guide the analysis:
+
+```
+inspect_image("screenshot.png", "Extract all text visible in this image")
+```
 
 If no vision model is configured when the tool runs, you'll be guided through setup on the spot.
 
