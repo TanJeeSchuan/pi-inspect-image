@@ -160,18 +160,23 @@ export default function (pi: ExtensionAPI) {
 	// ── Agent hook: route images to inspect_image when main model isn't vision-capable ──
 	pi.on("before_agent_start", async (event, ctx) => {
 		const currentModel = ctx.model;
-		if (currentModel && !currentModel.input.includes("image")) {
-			return {
-				message: {
-					customType: "inspect-image-hint",
-					content:
-						"⚠️ The current chat model does not support image input. " +
-						"Use the `inspect_image` tool to analyze any image files — " +
-						"it routes them to a separate vision-capable model.",
-					display: true,
-				},
-			};
-		}
+		if (!currentModel || currentModel.input.includes("image")) return;
+
+		// Only inject hint when images are actually involved
+		const hasAttachedImages = event.images && event.images.length > 0;
+		const mentionsImageFile = /\.(png|jpe?g|gif|webp|bmp)\b/i.test(event.prompt);
+		if (!hasAttachedImages && !mentionsImageFile) return;
+
+		return {
+			message: {
+				customType: "inspect-image-hint",
+				content:
+					"⚠️ The current chat model does not support image input. " +
+					"Use the `inspect_image` tool to analyze this image — " +
+					"it routes to a separate vision-capable model.",
+				display: true,
+			},
+		};
 	});
 
 	// ── Command: /setup-vision ──────────────────────────────────
